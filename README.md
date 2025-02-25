@@ -55,11 +55,9 @@ This project implements a software emulator for basic computer arithmetic and lo
    - Heavy use of `List.map2` for bitwise operations
    - `List.fold` for binary ↔ decimal conversions
 
----
 
 ## 📅 Current Date: Sunday, February 24, 2025, 1 AM EST
 Feel free to contribute, report issues, or suggest improvements! 🚀
 
----
 
 
