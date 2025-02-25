@@ -1,6 +1,6 @@
-# 8-Bit ALU Emulator in F# ![F# Logo](https://fsharp.org/img/logo/fsharp.svg)
+# ALU Emulator in F# ![F# Logo](https://fsharp.org/img/logo/fsharp.svg)
 
-A functional implementation of an 8-bit arithmetic logic unit emulator demonstrating core FP concepts.
+A functional implementation of an 8-bit arithmetic logic unit emulator demonstrating core functional programming concepts.
 
 ## Overview
 This project implements a software emulator for basic computer arithmetic and logical operations using F#'s functional programming capabilities. Handles both signed 8-bit integers (-128 to 127) and unsigned 8-bit values (0x00 to 0xFF).
@@ -13,17 +13,6 @@ This project implements a software emulator for basic computer arithmetic and lo
   - Decimal ↔ 8-bit binary
   - Signed ↔ Unsigned representations
 - 🧪 Comprehensive unit tests
-
-## Installation
-1. **Requirements**:
-   - [.NET 6.0 SDK](https://dotnet.microsoft.com/download)
-   - F# compiler (included with .NET SDK)
-   - Recommended IDE: VS Code with Ionide extension
-
-2. **Setup**:
-    git clone https://github.com/yourusername/8bit-alu-emulator-fsharp.git
-    cd 8bit-alu-emulator-fsharp
-    dotnet build
 
 ## Core Functions
 
@@ -65,5 +54,12 @@ This project implements a software emulator for basic computer arithmetic and lo
 3. **Higher-Order Functions**
    - Heavy use of `List.map2` for bitwise operations
    - `List.fold` for binary ↔ decimal conversions
+
+---
+
+## 📅 Current Date: Sunday, February 24, 2025, 1 AM EST
+Feel free to contribute, report issues, or suggest improvements! 🚀
+
+---
 
 
