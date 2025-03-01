@@ -1,0 +1,7 @@
+# .gitignore for F#/.NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.fsproj.user
