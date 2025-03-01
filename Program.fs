@@ -1,5 +1,5 @@
 ﻿open System
-
+// Akash Yadav
 // Hexadecimal to Binary (8-bit)
 let hexToBinaryList (hex: string) : int list =
     let sanitizedHex = hex.Replace("0x", "").Replace("0X", "")
