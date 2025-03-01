@@ -1,4 +1,4 @@
-# .gitignore for F#/.NET
+# .gitignore
 bin/
 obj/
 .vs/
