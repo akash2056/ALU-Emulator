@@ -1,140 +1,159 @@
 ﻿open System
-// Akash Yadav
-// Hexadecimal to Binary (8-bit)
+
+//Akash Yadav
+//Helper function for binary formatting
+let formatBinary bits = 
+    sprintf "[%s]" (String.concat "; " (List.map string bits))
+
+//Hexadecimal to Binary (8-bit)
 let hexToBinaryList (hex: string) : int list =
     let sanitizedHex = hex.Replace("0x", "").Replace("0X", "")
     let number = Convert.ToInt32(sanitizedHex, 16)
-    let rec toBinary n acc =
-        if n = 0 && List.length acc >= 8 then acc
-        else toBinary (n >>> 1) ((n &&& 1) :: acc)
-    let binary = toBinary number []
-    List.replicate (8 - List.length binary) 0 @ binary
+    [for i in 7..-1..0 -> (number >>> i) &&& 1]
 
-// Binary to Hexadecimal
+//Binary to Hexadecimal
 let binaryListToHex (bits: int list) : string =
-    let rec fromBinary bits acc =
-        match bits with
-        | [] -> acc
-        | bit :: rest -> fromBinary rest ((acc <<< 1) ||| bit)
-    sprintf "%X" (fromBinary bits 0)
+    bits
+    |> List.fold (fun acc bit -> (acc <<< 1) ||| bit) 0
+    |> sprintf "%02X"
 
-// Logical Operations
-let bitwiseNot = List.map (fun bit -> 1 - bit)
-let bitwiseAnd = List.map2 (&&&)
-let bitwiseOr = List.map2 (|||)
-let bitwiseXor = List.map2 (fun x y -> if x <> y then 1 else 0)
-
-// Decimal to Two's Complement Binary
+//Decimal to Two's Complement Binary (8-bit signed integers)
 let decimalToBinaryList (num: int) : int list =
     let byteValue = 
         if num < 0 then (~~~(abs num - 1)) &&& 0xFF
         else num &&& 0xFF
-    
-    let rec toBinary n acc =
-        if n = 0 && List.length acc >= 8 then acc
-        else toBinary (n >>> 1) ((n &&& 1) :: acc)
-    
-    let binary = toBinary byteValue []
-    List.replicate (8 - List.length binary) 0 @ binary
+    [for i in 7..-1..0 -> (byteValue >>> i) &&& 1]
 
-// Binary Addition with Carry
-let addBinaryLists (a: int list) (b: int list) : int list =
-    let rec addBits aRev bRev carry acc =
+//Binary Addition with Carry Visualization
+let addBinaryLists (a: int list) (b: int list) : int list * string list =
+    let rec addBits aRev bRev carry acc steps =
         match aRev, bRev with
-        | [], [] -> if carry = 1 then 1 :: acc else acc
+        | [], [] -> 
+            let final = if carry = 1 then 1 :: acc else acc
+            (List.rev final, List.rev steps)
         | aHead :: aTail, bHead :: bTail ->
             let sum = aHead + bHead + carry
-            addBits aTail bTail (sum / 2) ((sum % 2) :: acc)
+            let newCarry = sum / 2
+            let step = 
+                sprintf "Bit %d: %d + %d + %d = %d (Carry %d)" 
+                    (List.length acc) aHead bHead carry (sum % 2) newCarry
+            addBits aTail bTail newCarry ((sum % 2) :: acc) (step :: steps)
         | _ -> failwith "Mismatched lengths"
-    addBits (List.rev a) (List.rev b) 0 [] |> List.rev
+    addBits (List.rev a) (List.rev b) 0 [] []
 
-// Overflow Checking
-let addWithOverflowCheck a b =
-    let sum = a + b
-    if sum > 127 || sum < -128 then Error "OVERFLOW" else Ok sum
+//Overflow Checking for Signed Integers (-128 to 127)
+let checkOverflow result =
+    if result > 127 || result < -128 then true else false
 
-let subWithOverflowCheck a b =
-    let diff = a - b
-    if diff > 127 || diff < -128 then Error "OVERFLOW" else Ok diff
-
-// Enhanced Emulator with Subtraction
+//Emulator with Formatted Output and Overflow Handling
 let rec emulator () =
-    printfn "Enter operation (NOT, OR, AND, XOR, ADD, SUB, QUIT):"
+    printfn "\nEnter operation you want to perform (NOT, OR, AND, XOR, ADD, SUB or QUIT):"
     match Console.ReadLine().ToUpper() with
     | "NOT" ->
         printfn "Enter Hex value:"
         let hex = Console.ReadLine()
         try
             let bits = hexToBinaryList hex
-            let result = bitwiseNot bits
-            printfn "NOT %s = %s (%A)" hex (binaryListToHex result) result
+            let result = List.map (fun b -> 1 - b) bits
+            printfn "\nResult of NOT %s:\n%s = %s" hex (formatBinary result) (binaryListToHex result)
         with _ -> printfn "Invalid hex"
         emulator()
     
     | "AND" | "OR" | "XOR" as op ->
-        printfn "Enter first hex:"
+        printfn "Enter first Hex value:"
         let hexA = Console.ReadLine()
-        printfn "Enter second hex:"
+        printfn "Enter second Hex value:"
         let hexB = Console.ReadLine()
         try
             let a = hexToBinaryList hexA
             let b = hexToBinaryList hexB
             let result = 
                 match op with
-                | "AND" -> bitwiseAnd a b
-                | "OR" -> bitwiseOr a b
-                | "XOR" -> bitwiseXor a b
+                | "AND" -> List.map2 (&&&) a b
+                | "OR" -> List.map2 (|||) a b
+                | "XOR" -> List.map2 (fun x y -> if x <> y then 1 else 0) a b
                 | _ -> []
-            printfn "%s %s %s = %s (%A)" hexA op hexB (binaryListToHex result) result
+            printfn "\n%s %s %s:\n%s %s\n%s =\n%s = %s" 
+                hexA op hexB
+                (formatBinary a) op 
+                (formatBinary b)
+                (formatBinary result)
+                (binaryListToHex result)
         with _ -> printfn "Invalid hex"
         emulator()
 
     | "ADD" ->
-        printfn "Enter first decimal:"
+        printfn "Enter first decimal value:"
         let decA = Console.ReadLine()
-        printfn "Enter second decimal:"
+        printfn "Enter second decimal value:"
         let decB = Console.ReadLine()
         try
             let a = Convert.ToInt32(decA)
             let b = Convert.ToInt32(decB)
-            match addWithOverflowCheck a b with
-            | Ok sum ->
-                printfn "Decimal: %d + %d = %d" a b sum
-                printfn "Binary: %A + %A = %A" 
-                    (decimalToBinaryList a) 
-                    (decimalToBinaryList b)
-                    (decimalToBinaryList sum)
-            | Error msg -> printfn "%s" msg
+            if checkOverflow(a + b) then 
+                printfn "\nOverflow detected! Result exceeds signed 8-bit range (-128 to 127)."
+            else
+                let aBits = decimalToBinaryList a
+                let bBits = decimalToBinaryList b
+                let sumBits, steps = addBinaryLists aBits bBits
+                
+                printfn "\nBinary Addition Steps:"
+                printfn "A: %s" (formatBinary aBits)
+                printfn "B: %s" (formatBinary bBits)
+                steps |> List.iter (printfn "%s")
+                printfn "\nFinal Result:"
+                printfn "%s + %s =\n%s = %d (%s)"
+                    (formatBinary aBits)
+                    (formatBinary bBits)
+                    (formatBinary sumBits)
+                    (a + b)
+                    (binaryListToHex sumBits)
         with _ -> printfn "Invalid decimal"
         emulator()
 
     | "SUB" ->
-        printfn "Enter first decimal:"
+        printfn "Enter first decimal value:"
         let decA = Console.ReadLine()
-        printfn "Enter second decimal:"
+        printfn "Enter second decimal value:"
         let decB = Console.ReadLine()
         try
             let a = Convert.ToInt32(decA)
             let b = Convert.ToInt32(decB)
-            match subWithOverflowCheck a b with
-            | Ok diff ->
+            if checkOverflow(a - b) then 
+                printfn "\nOverflow detected! Result exceeds signed 8-bit range (-128 to 127)."
+            else 
                 let aBits = decimalToBinaryList a
                 let bBits = decimalToBinaryList b
-                let bComplement = decimalToBinaryList (-b)
                 
-                printfn "Decimal: %d - %d = %d" a b diff
-                printfn "Binary steps:"
-                printfn "Minuend:    %A (%d)" aBits a
-                printfn "Subtrahend: %A (%d)" bBits b
-                printfn "2's compl:  %A (-%d)" bComplement b
-                printfn "Sum:        %A + %A = %A" aBits bComplement (decimalToBinaryList diff)
-            | Error msg -> printfn "%s" msg
+                // Two's complement of subtrahend for subtraction operation
+                let bComplement =
+                    bBits |> List.map (fun bit -> 1 - bit)
+                          |> fun inv -> fst(addBinaryLists inv [0;0;0;0;0;0;0;1])
+                
+                // Perform addition of minuend and two's complement of subtrahend
+                let sumBits, steps = addBinaryLists aBits bComplement
+                
+                printfn "\nBinary Subtraction Steps:"
+                printfn "Minuend:    %s (%d)" (formatBinary aBits) a
+                printfn "Subtrahend: %s (%d)" (formatBinary bBits) b
+                printfn "2's compl:  %s (-%d)" (formatBinary bComplement) b
+                steps |> List.iter (printfn "%s")
+                
+                printfn "\nFinal Result:"
+                printfn "%s - %s:\n%s\n= %d (%s)"
+                    (formatBinary aBits)
+                    (formatBinary bComplement)
+                    (formatBinary sumBits)
+                    (a - b)
+                    (binaryListToHex sumBits)
         with _ -> printfn "Invalid decimal"
         emulator()
 
-    | "QUIT" -> printfn "Exiting..."
-    | _ -> 
-        printfn "Invalid operation"
+    | "QUIT" ->
+        printfn "\nExiting program..."
+    
+    | _ ->
+        printfn "\nInvalid operation. Try again."
         emulator()
 
 [<EntryPoint>]
