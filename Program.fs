@@ -138,8 +138,8 @@ let rec arithmeticEmulator () =
             printfn "%s =" (formatBinary bits2)
             printfn "%s = %d" (formatBinary resultBits) decResult
         
-        | Error e, _ -> printfn "Error: First input - %s" e
-        | _, Error e -> printfn "Error: Second input - %s" e
+        | Error e, _ -> printfn "Error: %s" e
+        | _, Error e -> printfn "Error: %s" e
         arithmeticEmulator()
 
     | "BACK" ->
